@@ -1,0 +1,7 @@
+tz.txt
+.pytest_cache
+.vscode
+.env
+/static/
+__pycache__/
+*.pyc

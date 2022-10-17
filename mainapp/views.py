@@ -9,6 +9,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models.aggregates import Count
 from django.contrib.auth.models import User
+from mainapp.permissions import IsAdminOrReadOnly
+from mainapp.pagination import DefaultPagination
+from mainapp.filters import ProductFilter
 from mainapp.models import Collection, Product, Customer, Cart, CartItem, Order, OrderItem
 from mainapp.serializers import AddCartItemSerializer, CollectionSerializer, CreateOrderSerializer, ProductSerializer, CustomerSerializer, CartSerializer, CartItemSerializer, UpdateCartItemSerializer, OrderSerializer, OrderItemSerializer, UpdateOrderSerializer
 
@@ -17,6 +20,7 @@ class CollectionViewSet(ModelViewSet):
     serializer_class = CollectionSerializer
     queryset = Collection.objects.annotate(
         products_count=Count('product')).all()
+    permission_classes = [IsAdminOrReadOnly]
 
     def destroy(self, request, pk):
         collection = get_object_or_404(Collection, pk=pk)
@@ -31,6 +35,9 @@ class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ProductFilter
+    pagination_class = DefaultPagination
+    permission_classes = [IsAdminOrReadOnly]
     search_fields = ['title', 'description']
     ordering_fields = ['unit_price']
 
@@ -48,18 +55,6 @@ class CustomerViewSet(ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.all()
     permission_classes = [IsAdminUser]
-
-    '''geting currently logged in user'''
-    @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
-    def me(self, request):
-        customer = Customer.objects.get(user_id=request.user.id)
-        if request.method == 'GET':
-            serializer = CustomerSerializer(customer)
-        elif request.method == 'PUT':
-            serializer = CustomerSerializer(customer, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-        return Response(serializer.data)
 
     def destroy(self, request, pk):
         user = get_object_or_404(User, pk=pk)
