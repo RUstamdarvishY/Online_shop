@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 from model_bakery import baker
-from mainapp.models import Collection
+from mainapp.models import Collection, Product
 
 
 collection_url = '/collections/'
@@ -67,15 +67,7 @@ class TestCollectionCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.django_db
-    def test_user_is_anonymous_returns_401(self, api_client):
-        response = api_client.post(
-            collection_url, data={'title': 'test'})
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    @pytest.mark.django_db
-    def test_user_is_not_admin_returns_403(self, api_client, auth_user):
-        auth_user(is_staff=False)
+    def test_create_collection_user_is_not_admin_returns_403(self, api_client):
 
         response = api_client.post(
             collection_url, data={'title': 'test'})
@@ -100,6 +92,17 @@ class TestCollectionUpdate:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data == new_data
+
+    @pytest.mark.django_db
+    def test_update_collection_user_is_not_admin_returns_403(self, api_client):
+        collection = baker.make(
+            Collection, title='test')
+
+        url = f'{collection_url}{collection.id}/'
+
+        response = api_client.put(url, data={'title': 'new_test'})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.django_db
     def test_partially_update_collection(self, api_client, auth_user):
@@ -131,3 +134,24 @@ class TestCollectionDelete:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Collection.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_delete_product_user_is_not_admin_returns_403(self, api_client):
+        collection = baker.make(Collection)
+        url = f'{collection_url}{collection.id}/'
+
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.django_db
+    def test_delete_collection_with_products(self, api_client, auth_user):
+        auth_user(is_staff=True)
+        collection = baker.make(Collection)
+        baker.make(Product, collection = collection, _quantity=10)
+        url = f'{collection_url}{collection.id}/'
+
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        assert Collection.objects.count() == 1

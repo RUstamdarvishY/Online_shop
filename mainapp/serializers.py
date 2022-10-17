@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import ValidationError
 from django.db import transaction
-from mainapp.models import Collection, Product, Customer, Cart, CartItem, Order, OrderItem
+from mainapp.models import Collection, Product, Customer, Cart, CartItem, Order, OrderItem, Address
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -22,13 +22,19 @@ class ProductSerializer(serializers.ModelSerializer):
                   'unit_price', 'inventory', 'collection')
 
 
+class AddressSerialzer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ('id', 'street', 'house', 'korpus', 'flat')
+
+
 class CustomerSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(read_only=True)
+    address = AddressSerialzer() 
 
     class Meta:
         model = Customer
-        fields = ('id', 'user_id', 'first_name', 'last_name',
-                  'email', 'phone', 'birth_date')
+        fields = ('id', 'first_name', 'last_name',
+                  'email', 'phone', 'address')
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
@@ -57,7 +63,8 @@ class CartSerializer(serializers.ModelSerializer):
         method_name='get_total_price')
 
     def get_total_price(self, cart: CartItem):
-        return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+        return sum([item.quantity * item.product.unit_price
+                    for item in cart.items.all()])
 
     class Meta:
         model = Cart

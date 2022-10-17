@@ -1,9 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from uuid import uuid4
-
-user = get_user_model()
 
 
 class Collection(models.Model):
@@ -48,7 +46,7 @@ class Customer(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     address = models.ForeignKey(Address, on_delete=models.DO_NOTHING)
-    user = models.OneToOneField(user, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
@@ -104,4 +102,3 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f'{self.product}, {self.quantity}'
-

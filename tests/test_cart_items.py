@@ -73,7 +73,7 @@ class TestCartItemCreate:
     @pytest.mark.django_db
     def test_create_cartitem(self, api_client, get_cartitem_url):
         cart = baker.make(Cart)
-        cartitem = baker.make(CartItem, cart=cart, quantity=10)
+        cartitem = baker.make(CartItem, cart=cart)
         expected_json = {
             'product_id': cartitem.product.pk,
             'quantity': cartitem.quantity
@@ -85,10 +85,23 @@ class TestCartItemCreate:
         assert response.data['quantity'] == expected_json['quantity'] * 2
         assert response.status_code == status.HTTP_201_CREATED
 
+    @pytest.mark.django_db
+    def test_create_invalid_cartitem(self, api_client, get_cartitem_url):
+        cart = baker.make(Cart)
+        cartitem = baker.make(CartItem, cart=cart)
+        expected_json = {
+            'product_id': cartitem.product.pk,
+            'quantity': -1
+        }
+
+        response = api_client.post(get_cartitem_url(cart.id), expected_json)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
 
 class TestCartItemUpdate:
     @pytest.mark.django_db
-    def test_update_cartitem(self, api_client, get_cartitem_url):
+    def test_update_cartitem_unsupported_returns_405(self, api_client, get_cartitem_url):
         cart = baker.make(Cart)
         cartitem = baker.make(CartItem, cart=cart)
         url = f'{get_cartitem_url(cart.id)}{cartitem.id}/'

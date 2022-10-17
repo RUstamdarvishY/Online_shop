@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 from model_bakery import baker
-from mainapp.models import Product
+from mainapp.models import Product, OrderItem
 
 
 product_url = '/products/'
@@ -87,14 +87,7 @@ class TestProductCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     @pytest.mark.django_db
-    def test_user_is_anonymous_returns_401(self, api_client):
-        response = api_client.post(product_url, data={'title': 'test'})
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    @pytest.mark.django_db
-    def test_user_is_not_admin_returns_403(self, api_client, auth_user):
-        auth_user(is_staff=False)
+    def test_create_product_user_is_not_admin_returns_403(self, api_client):
 
         response = api_client.post(product_url, data={'title': 'test'})
 
@@ -130,6 +123,17 @@ class TestProductUpdate:
         assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.django_db
+    def test_update_product_user_is_not_admin_returns_403(self, api_client):
+        product = baker.make(
+            Product, description='test', inventory=1)
+
+        url = f'{product_url}{product.id}/'
+
+        response = api_client.put(url, data={'title': 'new_test'})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.django_db
     @pytest.mark.parametrize('field', ['title', 'description', 'inventory'])
     def test_partially_update_product(self, api_client, auth_user, field):
         auth_user(is_staff=True)
@@ -163,3 +167,24 @@ class TestProductDelete:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Product.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_delete_product_user_is_not_admin_returns_403(self, api_client):
+        product = baker.make(Product)
+        url = f'{product_url}{product.id}/'
+
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.django_db
+    def test_delete_product_orderitem_exists(self, api_client, auth_user):
+        auth_user(is_staff=True)
+        product = baker.make(Product)
+        baker.make(OrderItem, product=product, _quantity=10)
+        url = f'{product_url}{product.id}/'
+
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        assert Product.objects.count() == 1

@@ -6,7 +6,7 @@ from mainapp.models import Customer
 
 customer_url = '/customers/'
 
-'''permissions are IsAdminUser (IsAuthenticated for retrieving logged in user)'''
+'''permissions are IsAdminUser (AllowAny for Posting)'''
 
 
 class TestCustomerList:

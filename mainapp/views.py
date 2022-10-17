@@ -3,7 +3,7 @@ from rest_framework.mixins import RetrieveModelMixin, DestroyModelMixin, CreateM
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models.aggregates import Count
@@ -50,18 +50,21 @@ class ProductViewSet(ModelViewSet):
 
 
 class CustomerViewSet(ModelViewSet):
-    http_method_names = ['get', 'put', 'patch', 'delete']
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
     serializer_class = CustomerSerializer
     queryset = Customer.objects.all()
-    permission_classes = [IsAdminUser]
+
+    def get_permissions(self):
+        if self.request.method in ['POST']:
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def destroy(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
-        customer = Customer.objects.filter(user=user).first()
+        customer = Customer.objects.filter(pk=pk).first()
         order = Order.objects.filter(customer=customer).count()
         if order > 0:
             return Response({'error': 'Нельзя удалить клиента у которого есть незавершенный заказ'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        user.delete()
+        customer.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
