@@ -69,7 +69,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
 
     def validate_product_id(self, value):
         if not Product.objects.filter(pk=value).exists():
-            raise ValidationError("Product doesn't exist")
+            raise ValidationError("Этот товар не существует")
         return value
 
     '''if user adds the same product doesn't stack duplicate records 
@@ -124,9 +124,9 @@ class CreateOrderSerializer(serializers.Serializer):
 
     def validate_cart_id(self, cart_id):
         if not Cart.objects.filter(pk=cart_id).exists():
-            raise ValidationError('No cart with the given id')
+            raise ValidationError('Не существует корзины с данным ID')
         if CartItem.objects.filter(cart_id=cart_id).count() == 0:
-            raise ValidationError('the cart is empty')
+            raise ValidationError('Пустая корзина')
         return cart_id
 
     '''converts cart and cart items to order and order items 

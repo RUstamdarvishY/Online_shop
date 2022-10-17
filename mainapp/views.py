@@ -22,7 +22,7 @@ class CollectionViewSet(ModelViewSet):
         collection = get_object_or_404(Collection, pk=pk)
         product = Product.objects.filter(collection=collection).count()
         if product > 0:
-            return Response({'error': 'Collection cannot be deleted because it includes one or more products'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({'error': 'Нельзя удалить раздел т.к. к нему привязан один или больше продуктов'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -38,7 +38,7 @@ class ProductViewSet(ModelViewSet):
         product = get_object_or_404(Product, pk=pk)
         orderitems = OrderItem.objects.filter(product=product).count()
         if orderitems > 0:
-            return Response({'error': 'Product cannot be deleted because it is associated with an order item'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({'error': 'Нельзя удалить продукт т.к. этот продукт есть в существующих заказах'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -66,7 +66,7 @@ class CustomerViewSet(ModelViewSet):
         customer = Customer.objects.filter(user=user).first()
         order = Order.objects.filter(customer=customer).count()
         if order > 0:
-            return Response({'error': 'Customer cannot be deleted because it has one or more orders'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({'error': 'Нельзя удалить клиента у которого есть незавершенный заказ'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -132,7 +132,7 @@ class OrderViewSet(ModelViewSet):
     def destroy(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         if order.orderitems.count() > 0:
-            return Response({'error': 'Order cannot be deleted because it includes one or more order items'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({'error': 'Нельзя удалить заказ в котором есть отдельные заказаные товары, сначала удалите товары из заказа'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
