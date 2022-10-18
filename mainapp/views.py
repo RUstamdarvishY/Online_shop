@@ -3,11 +3,10 @@ from rest_framework.mixins import RetrieveModelMixin, DestroyModelMixin, CreateM
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models.aggregates import Count
-from django.contrib.auth.models import User
 from mainapp.permissions import IsAdminOrReadOnly
 from mainapp.pagination import DefaultPagination
 from mainapp.filters import ProductFilter
@@ -51,8 +50,8 @@ class ProductViewSet(ModelViewSet):
 
 class CustomerViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
-    serializer_class = CustomerSerializer
     queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
 
     def get_permissions(self):
         if self.request.method in ['POST']:
@@ -99,13 +98,13 @@ class OrderViewSet(ModelViewSet):
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsAdminUser()]
-        return [IsAuthenticated()]
+        return [AllowAny()]
 
     '''after creating an order returns order object, not cart_id'''
 
     def create(self, request, *args, **kwargs):
         serializer = CreateOrderSerializer(data=request.data,
-                                           context={'user_id': self.request.user.id})
+                                           context={'customer_id': self.request.customer.id})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         serializer = OrderSerializer(order)
@@ -122,8 +121,8 @@ class OrderViewSet(ModelViewSet):
         if self.request.user.is_staff:
             return Order.objects.all()
 
-        customer_id = Customer.objects.only(
-            'id').get(user_id=self.request.user.id)
+        customer_id = Customer.objects.get(
+            'customer_id').get(customer_id=self.request.customer.id)
         return Order.objects.filter(customer_id=customer_id)
 
     def destroy(self, request, pk):
@@ -139,7 +138,7 @@ class OrderItemViewSet(ModelViewSet):
                          'delete', 'head', 'options']
 
     serializer_class = OrderItemSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny()]
 
     def get_queryset(self):
         if self.request.user.is_staff:

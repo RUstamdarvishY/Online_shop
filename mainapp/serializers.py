@@ -29,13 +29,27 @@ class AddressSerialzer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    address = AddressSerialzer() 
+    address = AddressSerialzer()
 
     class Meta:
         model = Customer
         fields = ('id', 'first_name', 'last_name',
                   'email', 'phone', 'address')
 
+    def create(self, validated_data):
+        with transaction.atomic():
+            address = Address.objects.create(**validated_data['address'])
+            customer = Customer.objects.create(
+                first_name=validated_data['first_name'],
+                last_name=validated_data['last_name'],
+                email=validated_data['email'],
+                phone=validated_data['phone'],
+                address=address,
+            )
+            return customer
+
+    def update(self, instance, validated_data):
+        pass
 
 class SimpleProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -141,7 +155,7 @@ class CreateOrderSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         with transaction.atomic():
-            customer = Customer.objects.get(user_id=self.context['user_id'])
+            customer = Customer.objects.get(id=self.context['customer_id'])
             order = Order.objects.create(customer=customer)
 
             cart_items = CartItem.objects.select_related('product')\

@@ -1,6 +1,6 @@
+from tabnanny import verbose
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.contrib.auth.models import User
 from uuid import uuid4
 
 
@@ -36,8 +36,14 @@ class Product(models.Model):
 class Address(models.Model):
     street = models.CharField(max_length=150)
     house = models.CharField(max_length=40)
-    korpus = models.CharField(max_length=10, null=True, blank=True)
-    flat = models.CharField(max_length=40)
+    korpus = models.CharField(max_length=50, null=True, blank=True)
+    flat = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return f'{self.street}, {self.house}' 
+
+    class Meta:
+        verbose_name = 'Addres'
 
 
 class Customer(models.Model):
@@ -46,7 +52,6 @@ class Customer(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=15)
     address = models.ForeignKey(Address, on_delete=models.DO_NOTHING)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.first_name}, {self.last_name}'
