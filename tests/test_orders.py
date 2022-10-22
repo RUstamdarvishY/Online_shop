@@ -7,13 +7,13 @@ from mainapp.models import Order, Cart, CartItem
 
 order_url = '/orders/'
 
-'''permissions are IsAuthenticated (for PATCH, DELETE - IsAdmin)'''
+'''permissions are AllowAny (for PATCH, DELETE - IsAdmin)'''
 
 
 class TestOrderList:
     @pytest.mark.django_db
     def test_list_orders(self, api_client, auth_user):
-        auth_user(is_staff=True)  # to view al orders
+        auth_user(is_staff=True)
         baker.make(Order)
 
         response = api_client.get(order_url)

@@ -3,6 +3,7 @@ from rest_framework.mixins import RetrieveModelMixin, DestroyModelMixin, CreateM
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
@@ -54,7 +55,7 @@ class CustomerViewSet(ModelViewSet):
     serializer_class = CustomerSerializer
 
     def get_permissions(self):
-        if self.request.method in ['POST']:
+        if self.request.method == 'POST':
             return [AllowAny()]
         return [IsAdminUser()]
 
@@ -138,7 +139,7 @@ class OrderItemViewSet(ModelViewSet):
                          'delete', 'head', 'options']
 
     serializer_class = OrderItemSerializer
-    permission_classes = [AllowAny()]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         if self.request.user.is_staff:

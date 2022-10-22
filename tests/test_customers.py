@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 from model_bakery import baker
-from mainapp.models import Customer, Address
+from mainapp.models import Customer
 
 
 customer_url = '/customers/'
@@ -41,7 +41,11 @@ class TestCustomerRetrieve:
             'last_name': customer.last_name,
             'email': customer.email,
             'phone': customer.phone,
-            'address': customer.address,
+            'street': customer.street,
+            'house': customer.house,
+            'korpus': customer.korpus,
+            'flat': customer.flat,
+
         }
         url = f'{customer_url}{customer.id}/'
 
@@ -53,6 +57,10 @@ class TestCustomerRetrieve:
         assert response.data['last_name'] == expected_json['last_name']
         assert response.data['email'] == expected_json['email']
         assert response.data['phone'] == expected_json['phone']
+        assert response.data['street'] == expected_json['street']
+        assert response.data['house'] == expected_json['house']
+        assert response.data['korpus'] == expected_json['korpus']
+        assert response.data['flat'] == expected_json['flat']
 
     @pytest.mark.django_db
     def test_retrieve_customer_that_doesnt_exist(self, api_client, auth_user):
@@ -76,38 +84,47 @@ class TestCustomerRetrieve:
 class TestCustomerCreate:
     @pytest.mark.django_db
     def test_create_customer(self, api_client):
-        address = baker.make(Address)
-        customer = baker.make(Customer, address=address)
+        customer = baker.make(Customer, korpus='2')
         expected_json = {
             'id': customer.id,
             'first_name': customer.first_name,
             'last_name': customer.last_name,
             'email': customer.email,
             'phone': customer.phone,
-            'address': address,
+            'street': customer.street,
+            'house': customer.house,
+            'korpus': customer.korpus,
+            'flat': customer.flat,
         }
-        url = f'{customer_url}{customer.id}/'
 
-        response = api_client.post(url, expected_json)
+        response = api_client.post(customer_url, expected_json)
 
-        assert response.data == expected_json
         assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['first_name'] == expected_json['first_name']
+        assert response.data['last_name'] == expected_json['last_name']
+        assert response.data['email'] == expected_json['email']
+        assert response.data['phone'] == expected_json['phone']
+        assert response.data['street'] == expected_json['street']
+        assert response.data['house'] == expected_json['house']
+        assert response.data['korpus'] == expected_json['korpus']
+        assert response.data['flat'] == expected_json['flat']
 
     @pytest.mark.django_db
     def test_create_customer_with_invalid_data(self, api_client):
-        customer = baker.make(Customer)
+        customer = baker.make(Customer, korpus='2')
         expected_json = {
             'id': customer.id,
             'first_name': customer.first_name,
             'last_name': customer.last_name,
             'email': '123abc',
             'phone': customer.phone,
-            'address': customer.address,
+            'street': customer.street,
+            'house': customer.house,
+            'korpus': customer.korpus,
+            'flat': customer.flat,
         }
 
-        url = f'{customer_url}{customer.id}/'
-
-        response = api_client.post(url, expected_json)
+        response = api_client.post(customer_url, expected_json)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -116,16 +133,18 @@ class TestCustomerUpdate:
     @pytest.mark.django_db
     def test_update_customer_for_admin(self, api_client, auth_user):
         auth_user(is_staff=True)
-        address = baker.make(Address)
         old_customer = baker.make(Customer)
-        new_customer = baker.prepare(Customer)
+        new_customer = baker.prepare(Customer, korpus='2')
         new_data = {
             'id': old_customer.id,
             'first_name': new_customer.first_name,
             'last_name': new_customer.last_name,
             'email': new_customer.email,
             'phone': new_customer.phone,
-            'address': address,
+            'street': new_customer.street,
+            'house': new_customer.house,
+            'korpus': new_customer.korpus,
+            'flat': new_customer.flat,
         }
         url = f'{customer_url}{old_customer.id}/'
 
@@ -137,14 +156,17 @@ class TestCustomerUpdate:
     @pytest.mark.django_db
     def test_update_customer(self, api_client):
         old_customer = baker.make(Customer)
-        new_customer = baker.prepare(Customer)
+        new_customer = baker.prepare(Customer, korpus='2')
         new_data = {
             'id': old_customer.id,
             'first_name': new_customer.first_name,
             'last_name': new_customer.last_name,
             'email': new_customer.email,
             'phone': new_customer.phone,
-            'address': new_customer.address,
+            'street': new_customer.street,
+            'house': new_customer.house,
+            'korpus': new_customer.korpus,
+            'flat': new_customer.flat,
         }
         url = f'{customer_url}{old_customer.id}/'
 
@@ -162,7 +184,10 @@ class TestCustomerUpdate:
             'first_name': customer.first_name,
             'last_name': customer.last_name,
             'email': customer.email,
-            'address': customer.address,
+            'street': customer.street,
+            'house': customer.house,
+            'korpus': customer.korpus,
+            'flat': customer.flat,
         }
         valid_field = new_data[field]
         url = f'{customer_url}{customer.id}/'

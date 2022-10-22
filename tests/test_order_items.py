@@ -18,8 +18,7 @@ def get_orderitem_url():
 class TestOrderItemList:
 
     @pytest.mark.django_db
-    def test_list_orderitems(self, api_client, auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_list_orderitems(self, api_client, get_orderitem_url):
         order = baker.make(Order)
         baker.make(OrderItem, order=order)
 
@@ -31,8 +30,7 @@ class TestOrderItemList:
 
 class TestOrderItemRetrieve:
     @pytest.mark.django_db
-    def test_retrieve_orderitem(self, api_client, auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_retrieve_orderitem(self, api_client, get_orderitem_url):
         order = baker.make(Order)
         orderitem = baker.make(OrderItem, order=order)
         expected_json = {
@@ -60,9 +58,7 @@ class TestOrderItemRetrieve:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.django_db
-    def test_retrieve_orderitem_for_order_that_doesnt_exist(self, api_client,
-                                                            auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_retrieve_orderitem_for_order_that_doesnt_exist(self, api_client, get_orderitem_url):
         orderitem = baker.make(OrderItem)
         url = f'{get_orderitem_url(10)}{orderitem.id}/'
 
@@ -73,8 +69,7 @@ class TestOrderItemRetrieve:
 
 class TestOrderItemCreate:
     @pytest.mark.django_db
-    def test_create_orderitem(self, api_client, auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_create_orderitem(self, api_client, get_orderitem_url):
         order = baker.make(Order)
         orderitem = baker.make(OrderItem, order=order)
         expected_json = {
@@ -88,20 +83,10 @@ class TestOrderItemCreate:
 
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    @pytest.mark.django_db
-    def test_user_is_anonymous_returns_401(self, api_client, get_orderitem_url):
-        order = baker.make(Order)
-
-        response = api_client.post(get_orderitem_url(
-            order.id), data={'quantity': 10})
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
 
 class TestOrderItemUpdate:
     @pytest.mark.django_db
-    def test_update_orderitem(self, api_client, auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_update_orderitem(self, api_client, get_orderitem_url):
         order = baker.make(Order)
         old_orderitem = baker.make(OrderItem, order=order)
         new_orderitem = baker.make(OrderItem, order=order)
@@ -135,8 +120,7 @@ class TestOrderItemUpdate:
 class TestOrderItemDelete:
 
     @ pytest.mark.django_db
-    def test_delete_orderitem(self, api_client, auth_user, get_orderitem_url):
-        auth_user(is_staff=False)
+    def test_delete_orderitem(self, api_client, get_orderitem_url):
         order = baker.make(Order)
         orderitem = baker.make(OrderItem, order=order)
         url = f'{get_orderitem_url(order.id)}{orderitem.id}/'

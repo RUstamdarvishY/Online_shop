@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import ValidationError
 from django.db import transaction
-from mainapp.models import Collection, Product, Customer, Cart, CartItem, Order, OrderItem, Address
+from mainapp.models import Collection, Product, Customer, Cart, CartItem, Order, OrderItem
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -22,34 +22,13 @@ class ProductSerializer(serializers.ModelSerializer):
                   'unit_price', 'inventory', 'collection')
 
 
-class AddressSerialzer(serializers.ModelSerializer):
-    class Meta:
-        model = Address
-        fields = ('id', 'street', 'house', 'korpus', 'flat')
-
-
 class CustomerSerializer(serializers.ModelSerializer):
-    address = AddressSerialzer()
 
     class Meta:
         model = Customer
         fields = ('id', 'first_name', 'last_name',
-                  'email', 'phone', 'address')
+                  'email', 'phone', 'street', 'house', 'korpus', 'flat')
 
-    def create(self, validated_data):
-        with transaction.atomic():
-            address = Address.objects.create(**validated_data['address'])
-            customer = Customer.objects.create(
-                first_name=validated_data['first_name'],
-                last_name=validated_data['last_name'],
-                email=validated_data['email'],
-                phone=validated_data['phone'],
-                address=address,
-            )
-            return customer
-
-    def update(self, instance, validated_data):
-        pass
 
 class SimpleProductSerializer(serializers.ModelSerializer):
     class Meta:
