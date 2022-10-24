@@ -110,6 +110,7 @@ INTERNAL_IPS = [
 
 STATIC_URL = "static/"
 
+AUTH_USER_MODEL = 'users.CustomUser'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/

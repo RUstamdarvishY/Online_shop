@@ -2,7 +2,7 @@ import pytest
 from uuid import uuid4
 from rest_framework import status
 from model_bakery import baker
-from mainapp.models import Order, Cart, CartItem
+from mainapp.models import Order, Cart, CartItem, OrderItem
 
 
 order_url = '/orders/'
@@ -46,8 +46,6 @@ class TestOrderRetrieve:
 
 class TestOrderCreate:
     @pytest.mark.django_db
-    @pytest.mark.skip
-    # TODO: fix test
     def test_create_order(self, api_client, auth_user):
         auth_user(is_staff=False)
         items = baker.make(CartItem, _quantity=3)
@@ -137,3 +135,16 @@ class TestOrderDelete:
         response = api_client.delete(url)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.django_db
+    def test_delete_order_with_order_items(self, api_client, auth_user):
+        auth_user(is_staff=True)
+        order = baker.make(Order)
+        baker.make(OrderItem, order=order, _quantity=10)
+        
+        url = f'{order_url}{order.id}/'
+
+        response = api_client.delete(url)
+
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        assert Order.objects.count() == 1

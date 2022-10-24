@@ -127,6 +127,8 @@ class CreateOrderSerializer(serializers.Serializer):
             raise ValidationError('Не существует корзины с данным ID')
         if CartItem.objects.filter(cart_id=cart_id).count() == 0:
             raise ValidationError('Пустая корзина')
+        if not Customer.objects.filter(id=self.context['customer_id']).exists():
+            raise ValidationError('Этого пользователя не существует')
         return cart_id
 
     '''converts cart and cart items to order and order items 
@@ -140,8 +142,8 @@ class CreateOrderSerializer(serializers.Serializer):
             cart_items = CartItem.objects.select_related('product')\
                 .filter(cart_id=self.validated_data['cart_id'])
 
-            order_items = [OrderItem(order=order, product=item.product, quantity=item.quantity)
-                           for item in cart_items]
+            order_items = [OrderItem(
+                order=order, product=item.product, quantity=item.quantity) for item in cart_items]
 
             OrderItem.objects.bulk_create(order_items)
 
