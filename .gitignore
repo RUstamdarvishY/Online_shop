@@ -5,4 +5,7 @@ tz.txt
 /static/
 __pycache__/
 *.pyc
+<<<<<<< HEAD
 .coverage
+=======
+>>>>>>> 1fb90a745845206ab1c459fb160f496352c4ae3a
